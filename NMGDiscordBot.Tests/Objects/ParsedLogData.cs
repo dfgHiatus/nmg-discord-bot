@@ -8,15 +8,17 @@ namespace NMGDiscordBot.Tests
 {
     internal class ParsedLogData
     {
-        public HashSet<ParsedNeosMod> ParsedNeosMods;
-        public ParsedNeosModLoaderStatus ParsedNeosModLoaderStatus;
-        public OperatingSystem ParsedOperatingSystem;
-        public ParsedLogData() { }
-        public ParsedLogData(HashSet<ParsedNeosMod> parsedNeosMods, ParsedNeosModLoaderStatus parsedNeosModLoaderStatus, OperatingSystem parsedOperatingSystem)
+        public HashSet<NeosPlugin> PresentPlugins;
+        public HashSet<NeosMod> PresentMods;
+        public NeosModLoaderStatus NMLStatus;
+        public OperatingSystem OperatingSystem;
+
+        public ParsedLogData()
         {
-            ParsedNeosMods = parsedNeosMods;
-            ParsedNeosModLoaderStatus = parsedNeosModLoaderStatus;
-            ParsedOperatingSystem = parsedOperatingSystem;
+            PresentPlugins = new();
+            PresentMods = new();
+            NMLStatus = new();
+            OperatingSystem = new(PlatformID.Other, Utils.NullVersion);
         }
     }
 }

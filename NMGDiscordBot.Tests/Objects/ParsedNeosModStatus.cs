@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace NMGDiscordBot.Tests
 {
-    internal class ParsedNeosModLoaderStatus
+    internal class NeosModLoaderStatus
     {
-        public Version ParsedVersion { get; set; }
-        public bool IsLoaded { get; set; }
+        public bool IsNMLPresent = false;
+        public bool IsNMLLoaded = false;
+        public Version NMLVersion;
+        public string NMLVersionFallback;
 
-        public ParsedNeosModLoaderStatus(Version parsedVersion, bool isLoaded)
+        public NeosModLoaderStatus()
         {
-            ParsedVersion = parsedVersion;
-            IsLoaded = isLoaded;
+            IsNMLPresent = false;
+            IsNMLLoaded = false;
+            NMLVersion = Utils.NullVersion;
+            NMLVersionFallback = string.Empty;
         }
     }
 }

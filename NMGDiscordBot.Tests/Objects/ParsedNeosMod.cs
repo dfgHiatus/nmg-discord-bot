@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NMGDiscordBot.Tests
+﻿namespace NMGDiscordBot.Tests
 {
-    internal class ParsedNeosMod
+    internal class NeosMod
     {
         public string Name { get; set; }
         public string Author { get; set; }
@@ -15,13 +8,13 @@ namespace NMGDiscordBot.Tests
         public Version RichVersion { get; set; }
         public string Link { get; set; }
 
-        public ParsedNeosMod(string name, string author, string version, Version richVersion, string link)
+        public NeosMod()
         {
-            Name = name;
-            Author = author;
-            Version = version;
-            RichVersion = richVersion;
-            Link = link;
+            Name = string.Empty;
+            Author = string.Empty;
+            Version = string.Empty;
+            RichVersion = Utils.NullVersion;
+            Link = string.Empty;
         }
     }
 }

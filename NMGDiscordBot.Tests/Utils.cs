@@ -1,15 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace NMGDiscordBot.Tests
 {
     internal static class Utils
     {
-        public static readonly Regex startsWithTimePrefix = new Regex(@"([0-9]+(:[0-9]+)+)\s.*\s\(\s.*\s[a-zA-Z]+\)", RegexOptions.IgnoreCase);
-        public static readonly Regex startsWithNMLPrefix = new Regex(@"\[(DEBUG|INFO|WARN|ERROR)\]\s\[[^\]]*\]", RegexOptions.IgnoreCase);
+        public static readonly Version NullVersion = new Version(0, 0, 0);
+        public static readonly Regex TimePrefix = new Regex(@"([0-9]+(:[0-9]+)+)\s.*\s\(\s.*\s[a-zA-Z]+\)", RegexOptions.IgnoreCase);
+        public static readonly Regex NMLPrefix = new Regex(@"\[(DEBUG|INFO|WARN|ERROR)\]\s\[[^\]]*\]", RegexOptions.IgnoreCase);
+
+        public static (string Trimmed, Version? Parsed) TryGetVersionFromSentence (string input)
+        {
+            Version v;
+            string s = Regex.Replace(input.Split(' ')[1], "[^0-9.]", "");
+            if (Version.TryParse(s, out v))
+            {
+                if (v is not null)
+                    return (s, v);
+                else
+                    Console.WriteLine("Bad version format detected");
+            }
+            return (s, NullVersion);
+        }
+
+        public static Version TryGetVersionFromWord (string input)
+        {
+            Version v;
+            if (Version.TryParse(input, out v))
+            {
+                if (v is not null)
+                    return v;
+                else
+                    Console.WriteLine("Bad version format detected");
+            }
+            return NullVersion;
+        }
     }
 }

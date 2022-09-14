@@ -16,7 +16,7 @@ namespace NMGDiscordBot.Tests.Benchmarks
             var enumerator = File.ReadLines(@"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-08 19_56_03.log").GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (Utils.startsWithTimePrefix.IsMatch(enumerator.Current))
+                if (Utils.TimePrefix.IsMatch(enumerator.Current))
                 {
                     ReadOnlySpan<char> current = enumerator.Current;
                     current = current.Slice(current.IndexOf(')') + 2);
@@ -29,7 +29,7 @@ namespace NMGDiscordBot.Tests.Benchmarks
             var enumerator = File.ReadLines(@"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-08 19_56_03.log").GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (Utils.startsWithTimePrefix.IsMatch(enumerator.Current))
+                if (Utils.TimePrefix.IsMatch(enumerator.Current))
                 {
                     string current = enumerator.Current;
                     current = current.Substring(current.IndexOf(')') + 2);
