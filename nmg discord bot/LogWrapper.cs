@@ -1,8 +1,8 @@
 using Discord;
 
-namespace nmgBot
+namespace NMGDiscordBot
 {
-	internal static class logWraper
+	internal static class LogWrapper
 	{
 		public static void Log(string msg, LogSeverity severity = LogSeverity.Info, Exception exception = null, string source = "nmgBot")
 		{

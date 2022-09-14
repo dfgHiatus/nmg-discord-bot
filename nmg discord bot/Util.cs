@@ -1,8 +1,8 @@
 using Discord;
 using Discord.WebSocket;
-using nmgBot.Managers;
+using NMGDiscordBot.Managers;
 
-namespace nmgBot
+namespace NMGDiscordBot
 {
 	internal static class Util
 	{
@@ -11,7 +11,7 @@ namespace nmgBot
 		public static string FormatedName(this IGuild guild) => $"{guild.Name} ({guild.Id})";
 		public static string FormatedName(this IChannel Channel) => $"{Channel.Name} ({Channel.Id})";
 		public static string GuildNameFromId(ulong GuildId) => GuildFromId(GuildId).Name;
-		public static SocketGuild GuildFromId(ulong GuildId) => BotMngr.client.Guilds.First((e) => GuildId == e.Id);
+		public static SocketGuild GuildFromId(ulong GuildId) => BotManager.client.Guilds.First((e) => GuildId == e.Id);
 		public static SocketGuild? GuildFromChannel(this ISocketMessageChannel channel) => (channel as SocketGuildChannel)?.Guild;
 		public static SocketTextChannel ChannelFromId(this SocketGuild guild, ulong ChannelId) => guild.TextChannels.First((e) => ChannelId == e.Id);
 		public static string OptionsToString(this IReadOnlyCollection<IApplicationCommandInteractionDataOption> options)

@@ -1,3 +1,3 @@
-using nmgBot.Managers;
+using NMGDiscordBot.Managers;
 
-await BotMngr.MainAsync();
+await BotManager.MainAsync();

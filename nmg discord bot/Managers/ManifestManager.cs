@@ -1,9 +1,9 @@
 using Newtonsoft.Json;
-using nmgBot.Schemas;
+using NMGDiscordBot.Schemas;
 
-namespace nmgBot.Managers
+namespace NMGDiscordBot.Managers
 {
-	internal static class manifestMngr
+	internal static class ManifestManager
 	{
 		private static ManifestInfo latest;
 

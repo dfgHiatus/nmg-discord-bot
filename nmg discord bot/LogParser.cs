@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 
-namespace nmgBot
+namespace NMGDiscordBot
 {
-	public class NeosLogPaser
+	public class LogParser
 	{
 		// The idea being if a Regex matches a line we can perform certain operations on a it. I love brainstorming.
 
@@ -10,7 +10,8 @@ namespace nmgBot
 		// - Regex can be slow
 		// - Will other locales/languages throw this off?
 
-		// We might not need Regex for the following, IE some of these are hard-coded into every log:
+		// We might not need Regex for the following, IE some of these are hard-coded into every log/
+		// The real question is, what is it we're after that we're parsing?
 		// - Presence: (Argument: Libraries\NeosModLoader.dll)
 		// - Version: ([INFO] [NeosModLoader] NeosModLoader {v1.11.0} starting up!)
 		// - Exceptions
@@ -22,7 +23,7 @@ namespace nmgBot
 		// Look for [2022.1.28.1335, 2022-09-12, 20_41_36.log]
 		private static readonly Regex validLogName = new Regex(@"([0-9]+(\.[0-9]+)+) - [0-9]{4}-[0-9]{2}-[0-9]{2} ([0-9]+(_[0-9]+)+)\.[a-zA-Z]+", RegexOptions.IgnoreCase);
 		
-		public NeosLogPaser()
+		public LogParser()
 		{
 
 		}

@@ -1,10 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using nmgBot.Managers;
-using nmgBot.Schemas;
+using NMGDiscordBot.Managers;
+using NMGDiscordBot.Schemas;
 
-namespace nmgBot.Commands
+namespace NMGDiscordBot.Commands
 {
 	internal static class ExtCmds //most of this is gross code that works... il fix it later (at least thats what i tell myself)
 	{
@@ -13,9 +13,9 @@ namespace nmgBot.Commands
 		static private Dictionary<int, string> RespToMsgCmd = new();
 		internal static void SetUp()
 		{
-			BotMngr.client.Ready += DefineSlashCommands;
-			BotMngr.client.SlashCommandExecuted += SlashCommandHandler;
-			BotMngr.client.MessageReceived += MsgHandler;
+			BotManager.client.Ready += DefineSlashCommands;
+			BotManager.client.SlashCommandExecuted += SlashCommandHandler;
+			BotManager.client.MessageReceived += MsgHandler;
 			deserializeJson();
 		}
 
@@ -51,7 +51,7 @@ namespace nmgBot.Commands
 			}
 			catch (Exception e)
 			{
-				logWraper.Error("error deserializing json", exception: e);
+				LogWrapper.Error("error deserializing json", exception: e);
 			}
 		}
 		static async Task DefineSlashCommands()
@@ -66,7 +66,7 @@ namespace nmgBot.Commands
 				builder.AddOption("msg_to_reply_to", ApplicationCommandOptionType.String, "msg id to reply to when sending the msg", false);
 				cmds.Add(builder.Build());
 			}
-			await BotMngr.client.BulkOverwriteGlobalApplicationCommandsAsync(cmds.ToArray());
+			await BotManager.client.BulkOverwriteGlobalApplicationCommandsAsync(cmds.ToArray());
 		}
 
 		static async Task SlashCommandHandler(SocketSlashCommand command)
@@ -79,7 +79,7 @@ namespace nmgBot.Commands
 			catch (Exception e)
 			{
 				if (e.Message == "Sequence contains no matching element") return;
-				logWraper.Error("Exception in getting Resp from slashCmdtoResp", e); //this should only happen if there is something wrong with the predicate
+				LogWrapper.Error("Exception in getting Resp from slashCmdtoResp", e); //this should only happen if there is something wrong with the predicate
 				return; //retuning as cmd is unassigned
 			}
 			IUser? user = (IUser)command.Data.Options.FirstOrDefault((o) => o.Name == "user_to_ping")?.Value;
@@ -91,7 +91,7 @@ namespace nmgBot.Commands
 			}
 			catch (Exception e)
 			{
-				logWraper.Error($"error parsing string: {mtrt}", e);
+				LogWrapper.Error($"error parsing string: {mtrt}", e);
 			}
 			string output = (user != null ? (user.Mention + Environment.NewLine) : "") + responses[cmd.Value];
 			if (msgid != null)
@@ -109,7 +109,7 @@ namespace nmgBot.Commands
 
 		private static async Task MsgHandler(SocketMessage msg)
 		{
-			if ((msg is not SocketUserMessage message) || (msg.Author.Id == BotMngr.client.CurrentUser.Id)) return;
+			if ((msg is not SocketUserMessage message) || (msg.Author.Id == BotManager.client.CurrentUser.Id)) return;
 			string msgStr = msg.Content.ToLower();
 			List<KeyValuePair<int, int>> foundStrs = new();
 			foreach (var item in RespToMsgCmd)
@@ -133,7 +133,7 @@ namespace nmgBot.Commands
 				logFoundItemsStr += $"{item.Key}:{RespToMsgCmd[item.Value]} ";// will have a trailing space
 				msgOutput += responses[item.Value] + Environment.NewLine + Environment.NewLine;
 			}
-			logWraper.Log($"found {logFoundItemsStr}in {msg.Content} sent by {message.Author.FormatedName()} in {msg.Channel.FormatedName()} {message.Channel.GuildFromChannel()?.FormatedName()}");
+			LogWrapper.Log($"found {logFoundItemsStr}in {msg.Content} sent by {message.Author.FormatedName()} in {msg.Channel.FormatedName()} {message.Channel.GuildFromChannel()?.FormatedName()}");
 
 			if (msg.Reference != null)
 				await message.Channel.SendMessageAsync(msgOutput, messageReference: message.Reference);

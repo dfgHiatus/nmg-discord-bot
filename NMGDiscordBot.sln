@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nmg discord bot", "nmg discord bot\nmg discord bot.csproj", "{ABEA57B2-69F9-487D-B89D-B2B526371163}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NMGDiscordBot", "nmg discord bot\NMGDiscordBot.csproj", "{ABEA57B2-69F9-487D-B89D-B2B526371163}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NMGDiscordBot.Tests", "NMGDiscordBot.Tests\NMGDiscordBot.Tests.csproj", "{A9D215DB-DAF1-453B-B733-01ACE29D4438}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{ABEA57B2-69F9-487D-B89D-B2B526371163}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABEA57B2-69F9-487D-B89D-B2B526371163}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABEA57B2-69F9-487D-B89D-B2B526371163}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9D215DB-DAF1-453B-B733-01ACE29D4438}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9D215DB-DAF1-453B-B733-01ACE29D4438}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9D215DB-DAF1-453B-B733-01ACE29D4438}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9D215DB-DAF1-453B-B733-01ACE29D4438}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

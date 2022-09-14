@@ -1,17 +1,17 @@
 using Discord;
 using Discord.WebSocket;
-using nmgBot.Managers;
-using nmgBot.Schemas;
+using NMGDiscordBot.Managers;
+using NMGDiscordBot.Schemas;
 
-namespace nmgBot.Commands
+namespace NMGDiscordBot.Commands
 {
 	internal static class SearchCmd
 	{
 		internal static void SetUp()
 		{
-			BotMngr.client.Ready += DefineSlashCommands;
-			BotMngr.client.SlashCommandExecuted += SlashCommandHandler;
-			BotMngr.client.SelectMenuExecuted += Client_SelectMenuExecuted;
+			BotManager.client.Ready += DefineSlashCommands;
+			BotManager.client.SlashCommandExecuted += SlashCommandHandler;
+			BotManager.client.SelectMenuExecuted += Client_SelectMenuExecuted;
 		}
 
 		const string CmdName = "search";
@@ -27,7 +27,7 @@ namespace nmgBot.Commands
 			builder.AddOption(SearchTermArgName, ApplicationCommandOptionType.String, "what mod names/tags to search for", false);
 			builder.AddOption(AuthorArgName, ApplicationCommandOptionType.String, "what author to search within", false);
 			builder.AddOption(CategoryArgName, ApplicationCommandOptionType.String, "what Category to search within", false); // maybe this should be converted to a multi choice
-			await BotMngr.client.CreateGlobalApplicationCommandAsync(builder.Build());
+			await BotManager.client.CreateGlobalApplicationCommandAsync(builder.Build());
 		}
 
 		static async Task SlashCommandHandler(SocketSlashCommand command)
@@ -40,7 +40,7 @@ namespace nmgBot.Commands
 			string CategoryName = (string)command.Data.Options.FirstOrDefault((o) => o.Name == CategoryArgName)?.Value;
 
 			//Query Manifest
-			var mods = manifestMngr.Manifest.searchMods(SearchTerm, AuthorName, CategoryName);
+			var mods = ManifestManager.Manifest.searchMods(SearchTerm, AuthorName, CategoryName);
 
 			//build arguments string
 			string text = "";
@@ -112,7 +112,7 @@ namespace nmgBot.Commands
 
 			//get mod from local manifest
 			ModInfo mod;
-			manifestMngr.Manifest.mods.TryGetValue(modid, out mod);
+			ManifestManager.Manifest.mods.TryGetValue(modid, out mod);
 			//inform user if mod is not in the manifest, discord requires a response so may aswell make it useful 
 			if (mod == null)
 			{
@@ -177,7 +177,7 @@ namespace nmgBot.Commands
 
 			//get mod from local manifest
 			ModInfo mod;
-			manifestMngr.Manifest.mods.TryGetValue(modid, out mod);
+			ManifestManager.Manifest.mods.TryGetValue(modid, out mod);
 			//inform user if mod is not in the manifest, discord requires a response so may aswell make it useful 
 			if (mod == null)
 			{

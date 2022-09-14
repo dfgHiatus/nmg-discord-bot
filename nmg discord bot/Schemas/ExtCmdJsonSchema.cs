@@ -1,4 +1,4 @@
-namespace nmgBot.Schemas
+namespace NMGDiscordBot.Schemas
 {
 	internal class jsonFile
 	{
