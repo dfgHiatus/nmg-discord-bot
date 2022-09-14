@@ -118,18 +118,7 @@ namespace NMGDiscordBot.Tests
 
         private static string TrimNMLLog(string input)
         {
-            return input.Substring(IndexOfNth(input, ']', 2) + 2);
-        }
-
-        private static int IndexOfNth(string str, char c, int n)
-        {
-            int s = -1;
-            for (int i = 0; i < n; i++)
-            {
-                s = str.IndexOf(c, s + 1);
-                if (s == -1) break;
-            }
-            return s;
+            return input.Substring(Utils.IndexOfNth(input, ']', 2) + 2);
         }
 
         private static bool MatchesName(string current, string prefix = "", string suffix = "")
