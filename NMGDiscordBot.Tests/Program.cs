@@ -96,6 +96,7 @@ namespace NMGDiscordBot.Tests
                     if (Utils.NMLPrefix.IsMatch(current))
                     {
                         ParseNMLLog(current, parsedLogData);
+                        continue;
                     }
                 }
             }
