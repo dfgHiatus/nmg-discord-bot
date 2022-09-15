@@ -32,7 +32,7 @@ namespace NMGDiscordBot.Tests
                     Console.WriteLine("- Name: " + item.Name);
                     Console.WriteLine("--- Version: " + item.Version);
                     Console.WriteLine("--- Author: " + item.Author);
-                    Console.WriteLine("--- SHA256: " + item.SHA_256);
+                    Console.WriteLine("--- SHA256: " + item.SHA_256 ?? $"No hash present for {item.Version}.");
                 }
                 Console.WriteLine("Is NML Present: " + parsedLogData.NMLStatus.IsNMLPresent);
                 Console.WriteLine("Is NML Loaded: " + parsedLogData.NMLStatus.IsNMLLoaded);
@@ -44,13 +44,17 @@ namespace NMGDiscordBot.Tests
 
         private static void ParseLog(string file, ParsedLogData parsedLogData)
         {
-            var enumerator = File.ReadLines(file).GetEnumerator();
-
-            while (enumerator.MoveNext())
+            using (var reader = new StreamReader(file))
             {
-                if (Utils.TimePrefix.IsMatch(enumerator.Current))
+                while (!reader.EndOfStream)
                 {
-                    string current = TrimTime(enumerator.Current);
+                    var line = reader.ReadLine();
+                    if (line is null || !Utils.TimePrefix.IsMatch(line))
+                    {
+                        continue;
+                    }
+
+                    string current = TrimTime(line);
 
                     #if DEBUG
                         Console.WriteLine(current);
@@ -59,23 +63,33 @@ namespace NMGDiscordBot.Tests
                     // Get the names of all loaded plugins
                     if (MatchesName(current, "Argument: -LoadAssembly"))
                     {
-                        if (enumerator.MoveNext())
+                        line = reader.ReadLine();
+                        if (line is null)
                         {
-                            current = TrimTime(enumerator.Current);
-
-                            NeosPlugin neosPlugin = new();
-                            neosPlugin.Name = current.Replace("Argument: ", "");
-                            if (!parsedLogData.PresentPlugins.Add(neosPlugin))
-                                Console.WriteLine("Duplicate Plugin!");
-
-                            parsedLogData.NMLStatus.IsNMLPresent = parsedLogData.NMLStatus.IsNMLPresent | MatchesName(current, "", "NeosModLoader.dll");
+                            continue;
                         }
+
+                        current = TrimTime(line);
+
+                        NeosPlugin neosPlugin = new();
+                        neosPlugin.Name = current.Replace("Argument: ", "");
+                        if (!parsedLogData.PresentPlugins.Add(neosPlugin))
+                        {
+                            Console.WriteLine("Duplicate Plugin!");     
+                        }
+                        else
+                        {
+                            parsedLogData.NMLStatus.IsNMLPresent = parsedLogData.NMLStatus.IsNMLPresent
+                                | MatchesName(current, "", "NeosModLoader.dll");
+                        }
+                        continue;
                     }
 
                     // Check if NML is among the plugins to be loaded
                     if (MatchesName(current, "Loaded Extra Assembly: ", "NeosModLoader.dll"))
                     {
                         parsedLogData.NMLStatus.IsNMLLoaded = true;
+                        continue;
                     }
 
                     // Check if a log starts with an NML-formatted string
@@ -85,7 +99,7 @@ namespace NMGDiscordBot.Tests
                     }
                 }
             }
-
+            
             #if DEBUG
                 Console.WriteLine();
             #endif
@@ -103,6 +117,8 @@ namespace NMGDiscordBot.Tests
                 parsedLogData.NMLStatus.NMLVersionFallback = v.Trimmed;
                 if (v.Parsed is not null)
                     parsedLogData.NMLStatus.NMLVersion = v.Parsed;
+
+                return;
             }
 
             // Get all loaded mods and parse their info
@@ -131,7 +147,11 @@ namespace NMGDiscordBot.Tests
                 }
 
                 if (!parsedLogData.PresentMods.Add(neosMod))
+                {
                     Console.WriteLine("Duplicate mod!");
+                }
+                
+                return;
             }
         }
 
