@@ -8,34 +8,41 @@ namespace NMGDiscordBot.Tests
 {
     public class Program
     {
-        private static ParsedLogData parsedLogData = new ParsedLogData();
-
         public static void Main(string[] args)
         {
             // var summary = BenchmarkRunner.Run<MemoryBenchmarkerDemo>();
-            string file = @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-08 19_56_03.log";
-            ParseLog(file);
+            string[] files = new string[] { 
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\11.log",
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log" 
+            };
+        
+            foreach (string file in files)
+            {
+                ParsedLogData parsedLogData = new ParsedLogData();
+                ParseLog(file, parsedLogData);
 
-            Console.WriteLine();
-            Console.WriteLine("Present Plugins: (" + parsedLogData.PresentPlugins.Count + ")");
-            foreach (var item in parsedLogData.PresentPlugins)
-            {
-                Console.WriteLine("- " + item.Name);
+                Console.WriteLine("Present Plugins: (" + parsedLogData.PresentPlugins.Count + ")");
+                foreach (var item in parsedLogData.PresentPlugins)
+                {
+                    Console.WriteLine("- Name: " + item.Name);
+                }
+                Console.WriteLine("Present Mods: (" + parsedLogData.PresentMods.Count + ")");
+                foreach (var item in parsedLogData.PresentMods)
+                {
+                    Console.WriteLine("- Name: " + item.Name);
+                    Console.WriteLine("--- Version: " + item.Version);
+                    Console.WriteLine("--- Author: " + item.Author);
+                    Console.WriteLine("--- SHA256: " + item.SHA_256);
+                }
+                Console.WriteLine("Is NML Present: " + parsedLogData.NMLStatus.IsNMLPresent);
+                Console.WriteLine("Is NML Loaded: " + parsedLogData.NMLStatus.IsNMLLoaded);
+                Console.WriteLine("NML Version: " + parsedLogData.NMLStatus.NMLVersion);
+                Console.WriteLine("NML Version String Fallback: " + parsedLogData.NMLStatus.NMLVersionFallback);
+                Console.WriteLine();
             }
-            Console.WriteLine("Present Mods: (" + parsedLogData.PresentMods.Count + ")");
-            foreach (var item in parsedLogData.PresentMods)
-            {
-                Console.WriteLine("- " + item.Name);
-                Console.WriteLine("--- " + item.RichVersion);
-                Console.WriteLine("--- " + item.Author);
-            }
-            Console.WriteLine("Is NML Present: " + parsedLogData.NMLStatus.IsNMLPresent);
-            Console.WriteLine("Is NML Loaded: " + parsedLogData.NMLStatus.IsNMLLoaded);
-            Console.WriteLine("NML Version: " + parsedLogData.NMLStatus.NMLVersion);
-            Console.WriteLine("NML Version String Fallback: " + parsedLogData.NMLStatus.NMLVersionFallback);
         }
 
-        private static void ParseLog(string file)
+        private static void ParseLog(string file, ParsedLogData parsedLogData)
         {
             var enumerator = File.ReadLines(file).GetEnumerator();
 
@@ -44,7 +51,10 @@ namespace NMGDiscordBot.Tests
                 if (Utils.TimePrefix.IsMatch(enumerator.Current))
                 {
                     string current = TrimTime(enumerator.Current);
-                    Console.WriteLine(current);
+
+                    #if DEBUG
+                        Console.WriteLine(current);
+                    #endif
 
                     // Get the names of all loaded plugins
                     if (MatchesName(current, "Argument: -LoadAssembly"))
@@ -71,13 +81,17 @@ namespace NMGDiscordBot.Tests
                     // Check if a log starts with an NML-formatted string
                     if (Utils.NMLPrefix.IsMatch(current))
                     {
-                        ParseNMLLog(current);
+                        ParseNMLLog(current, parsedLogData);
                     }
                 }
             }
+
+            #if DEBUG
+                Console.WriteLine();
+            #endif
         }
 
-        private static void ParseNMLLog(string current)
+        private static void ParseNMLLog(string current, ParsedLogData parsedLogData)
         {
             string currentNML = TrimNMLLog(current);
 
@@ -99,12 +113,22 @@ namespace NMGDiscordBot.Tests
 
                 NeosMod neosMod = new NeosMod();
                 neosMod.Name = mod[0];
-                neosMod.Version = mod[1];
-                neosMod.Author = currentNML.Substring(currentNML.IndexOf("by ") + 3);
+                neosMod.RawVersion = mod[1];
 
                 var v = Utils.TryGetVersionFromWord(mod[1]);
                 if (v is not null)
-                    neosMod.RichVersion = v;
+                    neosMod.Version = v;
+
+                var index = currentNML.IndexOf("by ") + 3;
+                if (parsedLogData.NMLStatus.NMLVersion >= new Version(1, 12, 0))
+                {
+                    neosMod.Author = currentNML.Substring(index, currentNML.IndexOf(" with 256hash: ") - index);
+                    neosMod.SHA_256 = split[split.Length - 1];
+                }
+                else
+                {
+                    neosMod.Author = currentNML.Substring(index);
+                }
 
                 if (!parsedLogData.PresentMods.Add(neosMod))
                     Console.WriteLine("Duplicate mod!");
