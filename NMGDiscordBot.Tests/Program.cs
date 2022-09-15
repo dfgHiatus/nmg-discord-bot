@@ -70,7 +70,7 @@ namespace NMGDiscordBot.Tests
                         Console.WriteLine(current);
                     #endif
 
-                    // Get the names of all loaded plugins
+                    // Get the current OS
                     if (MatchesName(current, "Platform: "))
                     {
                         string os = current.Substring(10, current.IndexOf(',') - 10);
