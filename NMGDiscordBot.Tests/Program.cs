@@ -30,6 +30,7 @@ namespace NMGDiscordBot.Tests
                 ParsedLogData parsedLogData = new ParsedLogData();
                 ParseLog(file, parsedLogData);
 
+                Console.WriteLine("Operating System: " + parsedLogData.OperatingSystem.Platform);
                 Console.WriteLine("Present Plugins: (" + parsedLogData.PresentPlugins.Count + ")");
                 foreach (var item in parsedLogData.PresentPlugins)
                 {
@@ -68,6 +69,21 @@ namespace NMGDiscordBot.Tests
                     #if DEBUG
                         Console.WriteLine(current);
                     #endif
+
+                    // Get the names of all loaded plugins
+                    if (MatchesName(current, "Platform: "))
+                    {
+                        string os = current.Substring(10, current.IndexOf(',') - 10);
+                        switch(os)
+                        {
+                            case "WindowsPlayer":
+                                parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Win32NT, Utils.NullVersion);
+                                break;
+                            default:
+                                Console.WriteLine("Unrecognized Operating System found in log.");
+                                break;
+                        }
+                    }
 
                     // Get the names of all loaded plugins
                     if (MatchesName(current, "Argument: -LoadAssembly"))
