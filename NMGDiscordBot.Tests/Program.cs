@@ -11,11 +11,20 @@ namespace NMGDiscordBot.Tests
         public static void Main(string[] args)
         {
             // var summary = BenchmarkRunner.Run<MemoryBenchmarkerDemo>();
-            string[] files = new string[] { 
+
+            string[] files = new string[] {
                 @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\11.log",
-                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log" 
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log"
             };
-        
+
+            //List<string> files = new();
+            //DirectoryInfo d = new DirectoryInfo(@"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs");
+            //FileInfo[] f = d.GetFiles("*.log");
+            //foreach (FileInfo file in f)
+            //{
+            //    files.Add(file.FullName);
+            //}
+
             foreach (string file in files)
             {
                 ParsedLogData parsedLogData = new ParsedLogData();
