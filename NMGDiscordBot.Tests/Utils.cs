@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.RegularExpressions;
 
 namespace NMGDiscordBot.Tests
@@ -6,7 +6,8 @@ namespace NMGDiscordBot.Tests
     internal static class Utils
     {
         public static readonly Version NullVersion = new Version(0, 0, 0);
-        public static readonly Regex TimePrefix = new Regex(@"([0-9]+(:[0-9]+)+)\s.*\s\(\s.*\s[a-zA-Z]+\)", RegexOptions.IgnoreCase);
+        public static readonly Regex AMPM_Prefix = new Regex(@"([0-9]+(:[0-9]+)+)\s.*\s\(\s.*\s[a-zA-Z]+\)", RegexOptions.IgnoreCase);
+        public static readonly Regex TwentyFourHR_Prefix = new Regex(@"(([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?(:([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[eE]([+-]?\d+))?)+).*\(.*\)", RegexOptions.IgnoreCase);
         public static readonly Regex NMLPrefix = new Regex(@"\[(DEBUG|INFO|WARN|ERROR)\]\s\[[^\]]*\]", RegexOptions.IgnoreCase);
 
         public static int IndexOfNth(string str, char c, int n)

@@ -1,9 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NMGDiscordBot.Tests.Benchmarks
 {
@@ -16,7 +11,7 @@ namespace NMGDiscordBot.Tests.Benchmarks
             var enumerator = File.ReadLines(@"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-08 19_56_03.log").GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (Utils.TimePrefix.IsMatch(enumerator.Current))
+                if (Utils.AMPM_Prefix.IsMatch(enumerator.Current))
                 {
                     ReadOnlySpan<char> current = enumerator.Current;
                     current = current.Slice(current.IndexOf(')') + 2);
@@ -29,7 +24,7 @@ namespace NMGDiscordBot.Tests.Benchmarks
             var enumerator = File.ReadLines(@"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-08 19_56_03.log").GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (Utils.TimePrefix.IsMatch(enumerator.Current))
+                if (Utils.AMPM_Prefix.IsMatch(enumerator.Current))
                 {
                     string current = enumerator.Current;
                     current = current.Substring(current.IndexOf(')') + 2);

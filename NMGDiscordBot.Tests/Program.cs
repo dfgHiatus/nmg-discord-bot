@@ -14,7 +14,8 @@ namespace NMGDiscordBot.Tests
 
             string[] files = new string[] {
                 @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\11.log",
-                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log"
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log",
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\Linux.log"
             };
 
             //List<string> files = new();
@@ -42,7 +43,7 @@ namespace NMGDiscordBot.Tests
                     Console.WriteLine("- Name: " + item.Name);
                     Console.WriteLine("--- Version: " + item.Version);
                     Console.WriteLine("--- Author: " + item.Author);
-                    Console.WriteLine("--- SHA256: " + item.SHA_256 ?? $"No hash present for {item.Version}.");
+                    Console.WriteLine($"--- SHA256: {(string.IsNullOrEmpty(item.SHA_256) ? $"No hash present for NML v{parsedLogData.NMLStatus.NMLVersion}." : item.SHA_256)}");
                 }
                 Console.WriteLine("Is NML Present: " + parsedLogData.NMLStatus.IsNMLPresent);
                 Console.WriteLine("Is NML Loaded: " + parsedLogData.NMLStatus.IsNMLLoaded);
@@ -59,7 +60,7 @@ namespace NMGDiscordBot.Tests
                 while (!reader.EndOfStream)
                 {
                     var line = reader.ReadLine();
-                    if (line is null || !Utils.TimePrefix.IsMatch(line))
+                    if (line is null || !(Utils.AMPM_Prefix.IsMatch(line) || Utils.TwentyFourHR_Prefix.IsMatch(line)))
                     {
                         continue;
                     }
@@ -79,10 +80,14 @@ namespace NMGDiscordBot.Tests
                             case "WindowsPlayer":
                                 parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Win32NT, Utils.NullVersion);
                                 break;
+                            case "LinuxPlayer":
+                                parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Unix, Utils.NullVersion);
+                                break;
                             default:
                                 Console.WriteLine("Unrecognized Operating System found in log.");
                                 break;
                         }
+                        continue;
                     }
 
                     // Get the names of all loaded plugins
@@ -150,8 +155,8 @@ namespace NMGDiscordBot.Tests
             // Get all loaded mods and parse their info
             if (MatchesName(currentNML, "loaded mod "))
             {
-                var split = currentNML.Split(' ').Skip(2).ToArray();
-                var mod = split[0].Substring(1, split[0].Length - 2).Split('/');
+                var len = currentNML.IndexOf('[') + 1;
+                var mod = currentNML.Substring(len, currentNML.IndexOf(']') - len).Split('/');
 
                 NeosMod neosMod = new NeosMod();
                 neosMod.Name = mod[0];
@@ -165,7 +170,7 @@ namespace NMGDiscordBot.Tests
                 if (parsedLogData.NMLStatus.NMLVersion >= new Version(1, 12, 0))
                 {
                     neosMod.Author = currentNML.Substring(index, currentNML.IndexOf(" with 256hash: ") - index);
-                    neosMod.SHA_256 = split[split.Length - 1];
+                    neosMod.SHA_256 = currentNML.Substring(currentNML.LastIndexOf(' '));
                 }
                 else
                 {
