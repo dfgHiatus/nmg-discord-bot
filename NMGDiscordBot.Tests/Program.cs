@@ -53,6 +53,9 @@ namespace NMGDiscordBot.Tests
             }
         }
 
+        // https://www.youtube.com/watch?v=FM5dpxJMULY
+        // RegeX matching for ReadOnlySpan<char> needs .NET 7 IIRC
+
         private static void ParseLog(string file, ParsedLogData parsedLogData)
         {
             using (var reader = new StreamReader(file))
@@ -65,33 +68,27 @@ namespace NMGDiscordBot.Tests
                         continue;
                     }
 
-                    string current = TrimTime(line);
+                    ReadOnlySpan<char> current = TrimTime(line);
 
                     #if DEBUG
                         Console.WriteLine(current);
                     #endif
 
                     // Get the current OS
-                    if (MatchesName(current, "Platform: "))
+                    if (MatchesName(current, "Platform: ".AsSpan(), ReadOnlySpan<char>.Empty))
                     {
-                        string os = current.Substring(10, current.IndexOf(',') - 10);
-                        switch(os)
-                        {
-                            case "WindowsPlayer":
-                                parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Win32NT, Utils.NullVersion);
-                                break;
-                            case "LinuxPlayer":
-                                parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Unix, Utils.NullVersion);
-                                break;
-                            default:
-                                Console.WriteLine("Unrecognized Operating System found in log.");
-                                break;
-                        }
+                        ReadOnlySpan<char> os = current.Slice(10, current.IndexOf(',') - 10);
+                        if (os == "WindowsPlayer".AsSpan())
+                            parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Win32NT, Utils.NullVersion);
+                        else if (os == "LinuxPlayer".AsSpan())
+                            parsedLogData.OperatingSystem = new OperatingSystem(PlatformID.Unix, Utils.NullVersion);
+                        else
+                            Console.WriteLine("Unrecognized Operating System found in log.");
                         continue;
                     }
 
                     // Get the names of all loaded plugins
-                    if (MatchesName(current, "Argument: -LoadAssembly"))
+                    if (MatchesName(current, "Argument: -LoadAssembly".AsSpan(), ReadOnlySpan<char>.Empty))
                     {
                         line = reader.ReadLine();
                         if (line is null)
@@ -102,7 +99,7 @@ namespace NMGDiscordBot.Tests
                         current = TrimTime(line);
 
                         NeosPlugin neosPlugin = new();
-                        neosPlugin.Name = current.Replace("Argument: ", "");
+                        neosPlugin.Name = current.Slice(10).ToString(); // current.Replace("Argument: ", "");
                         if (!parsedLogData.PresentPlugins.Add(neosPlugin))
                         {
                             Console.WriteLine("Duplicate Plugin!");     
@@ -125,7 +122,7 @@ namespace NMGDiscordBot.Tests
                     // Check if a log starts with an NML-formatted string
                     if (Utils.NMLPrefix.IsMatch(current))
                     {
-                        ParseNMLLog(current, parsedLogData);
+                        ParseNMLLog(ref current, parsedLogData);
                         continue;
                     }
                 }
@@ -134,6 +131,56 @@ namespace NMGDiscordBot.Tests
             #if DEBUG
                 Console.WriteLine();
             #endif
+        }
+
+        private static void ParseNMLLog(ref ReadOnlySpan<char> current, ParsedLogData parsedLogData)
+        {
+            ReadOnlySpan<char> currentNML = TrimNMLLog(current);
+
+            // Get the current NML Version and fallback string
+            if (MatchesName(currentNML, "NeosModLoader ", " starting up!"))
+            {
+                var v = Utils.TryGetVersionFromSentence(currentNML);
+
+                parsedLogData.NMLStatus.NMLVersionFallback = v.Trimmed.ToString();
+                if (v.Parsed is not null)
+                    parsedLogData.NMLStatus.NMLVersion = v.Parsed;
+
+                return;
+            }
+
+            // Get all loaded mods and parse their info
+            if (MatchesName(currentNML, "loaded mod ".AsSpan(), ReadOnlySpan<char>.Empty))
+            {
+                var len = currentNML.IndexOf('[') + 1;
+                var mod = currentNML.Slice(len, currentNML.IndexOf(']') - len).Split('/');
+
+                NeosMod neosMod = new NeosMod();
+                neosMod.Name = mod[0];
+                neosMod.RawVersion = mod[1];
+
+                var v = Utils.TryGetVersionFromWord(mod[1]);
+                if (v is not null)
+                    neosMod.Version = v;
+
+                var index = currentNML.IndexOf("by ") + 3;
+                if (parsedLogData.NMLStatus.NMLVersion >= new Version(1, 12, 0))
+                {
+                    neosMod.Author = currentNML.Slice(index, currentNML.IndexOf(" with 256hash: ") - index).ToString();
+                    neosMod.SHA_256 = currentNML.Slice(currentNML.LastIndexOf(' ')).ToString();
+                }
+                else
+                {
+                    neosMod.Author = currentNML.Slice(index).ToString();
+                }
+
+                if (!parsedLogData.PresentMods.Add(neosMod))
+                {
+                    Console.WriteLine("Duplicate mod!");
+                }
+
+                return;
+            }
         }
 
         private static void ParseNMLLog(string current, ParsedLogData parsedLogData)
@@ -191,15 +238,40 @@ namespace NMGDiscordBot.Tests
             return input.Substring(input.IndexOf(')') + 2);
         }
 
+        private static ReadOnlySpan<char> TrimTime(ReadOnlySpan<char> input)
+        {
+            return input.Slice(input.IndexOf(')') + 2);
+        }
+
         private static string TrimNMLLog(string input)
         {
             return input.Substring(Utils.IndexOfNth(input, ']', 2) + 2);
+        }
+
+        private static ReadOnlySpan<char> TrimNMLLog(ReadOnlySpan<char> input)
+        {
+            return input.Slice(input.IndexOf(']')).Slice(input.IndexOf(']')); // Add 2?
         }
 
         private static bool MatchesName(string current, string prefix = "", string suffix = "")
         {
             var prefixEval = !string.IsNullOrEmpty(prefix);
             var suffixEval = !string.IsNullOrEmpty(suffix);
+
+            if (prefixEval && suffixEval)
+                return current.StartsWith(prefix) && current.EndsWith(suffix);
+            else if (prefixEval) // Implies suffix is empty
+                return current.StartsWith(prefix);
+            else if (suffixEval) // Implies suffix is empty
+                return current.EndsWith(suffix);
+            else                  // Implies prefix and suffix are both empty
+                return false;
+        }
+
+        private static bool MatchesName(ReadOnlySpan<char> current, ReadOnlySpan<char> prefix, ReadOnlySpan<char> suffix)
+        {
+            var prefixEval = prefix.Length > 0;
+            var suffixEval = suffix.Length > 0;
 
             if (prefixEval && suffixEval)
                 return current.StartsWith(prefix) && current.EndsWith(suffix);
