@@ -13,6 +13,7 @@ namespace NMGDiscordBot.Tests
             // var summary = BenchmarkRunner.Run<MemoryBenchmarkerDemo>();
 
             string[] files = new string[] {
+                @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Logs\DESKTOP-4GOD64O - 2022.1.28.1335 - 2022-09-20 18_22_04.log",
                 @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\11.log",
                 @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\12.log",
                 @"C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Tests\Linux.log"
@@ -43,13 +44,17 @@ namespace NMGDiscordBot.Tests
                     Console.WriteLine("- Name: " + item.Name);
                     Console.WriteLine("--- Version: " + item.Version);
                     Console.WriteLine("--- Author: " + item.Author);
-                    Console.WriteLine($"--- SHA256: {(string.IsNullOrEmpty(item.SHA_256) ? $"No hash present for NML v{parsedLogData.NMLStatus.NMLVersion}." : item.SHA_256)}");
+                    Console.WriteLine($"--- SHA256: {(string.IsNullOrEmpty(item.SHA_256) ? $"No hash present for NML v{parsedLogData.NMLStatus.NMLVersion}" : item.SHA_256)}");
                 }
+                Console.WriteLine("");
                 Console.WriteLine("Is NML Present: " + parsedLogData.NMLStatus.IsNMLPresent);
                 Console.WriteLine("Is NML Loaded: " + parsedLogData.NMLStatus.IsNMLLoaded);
                 Console.WriteLine("NML Version: " + parsedLogData.NMLStatus.NMLVersion);
                 Console.WriteLine("NML Version String Fallback: " + parsedLogData.NMLStatus.NMLVersionFallback);
-                Console.WriteLine();
+                Console.WriteLine("Is 0Harmony Loaded: " + parsedLogData.NMLStatus.IsNMLPresent);
+                Console.WriteLine("0Harmony Version: " + parsedLogData.NMLStatus.HarmonyVersion);
+                Console.WriteLine("0Harmony Version String Fallback: " + parsedLogData.NMLStatus.HarmonyVersionFallback);
+                Console.WriteLine("");
             }
         }
 
@@ -125,7 +130,7 @@ namespace NMGDiscordBot.Tests
                     // Check if a log starts with an NML-formatted string
                     if (Utils.NMLPrefix.IsMatch(current))
                     {
-                        ParseNMLLog(current, parsedLogData);
+                        ParseNMLLog(current, parsedLogData, reader);
                         continue;
                     }
                 }
@@ -136,9 +141,39 @@ namespace NMGDiscordBot.Tests
             #endif
         }
 
-        private static void ParseNMLLog(string current, ParsedLogData parsedLogData)
+        private static void ParseNMLLog(string current, ParsedLogData parsedLogData, StreamReader reader)
         {
             string currentNML = TrimNMLLog(current);
+
+            // Check if harmony is installed
+            if (MatchesName(currentNML, "Exception in execution hook!"))
+            {
+                var line = reader.ReadLine();
+                if (line is null)
+                {
+                    return;
+                }
+
+                var index = line.IndexOf('\'');
+                if (line.Substring(index, line.IndexOf(',') - index) == "0Harmony")
+                {
+                    parsedLogData.NMLStatus.Is0HarmonyPresent = false;
+                    parsedLogData.NMLStatus.HarmonyVersion = Utils.NullVersion;
+                    parsedLogData.NMLStatus.HarmonyVersionFallback = string.Empty;
+                }
+
+                return;
+            }
+
+            // Note its verison, should it exist
+            if (MatchesName(currentNML, "Using Harmony"))
+            {
+                parsedLogData.NMLStatus.Is0HarmonyPresent = true;
+                var canidate = currentNML.Substring(currentNML.LastIndexOf('v') + 1);
+                parsedLogData.NMLStatus.HarmonyVersionFallback = canidate;
+                parsedLogData.NMLStatus.HarmonyVersion = Utils.TryGetVersionFromWord(canidate);
+                return;
+            }
 
             // Get the current NML Version and fallback string
             if (MatchesName(currentNML, "NeosModLoader ", " starting up!"))
